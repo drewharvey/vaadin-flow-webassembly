@@ -1,15 +1,40 @@
 
-# vaadin-flow-webassembly
-Simple example of loading a webessembly module in the Vaadin Flow framework.
+# Webcam Effects with Vaadin Flow and Webassembly
 
-This project can be used as a starting point to create your own Vaadin Flow application.
-It has the necessary dependencies and files to help you get started.
+Simple web application that displays contents of a webcam and enables
+several basic image filters. This was created as a simple example of 
+using a webassembly module in the Vaadin Flow framework.
 
-The best way to use it by via [vaadin.com/start](https://vaadin.com/start) - you can get only the necessary parts and choose the package naming you want to use.
-There is also a [getting started tutorial](https://vaadin.com/docs/v10/flow/introduction/tutorial-get-started.html) based on this project.
+Learn more about [Vaadin Flow Framework](https://vaadin.com/flow).
 
-To access it directly from github, clone the repository and import the project to the IDE of your choice as a Maven project. You need to have Java 8 installed.
+This application uses the [WebDSP webassembly](https://github.com/shamadee/web-dsp) 
+module for filter effects.
 
-Run using `mvn jetty:run` and open [http://localhost:8080](http://localhost:8080) in browser.
+## Starting the server ##  
 
-For a full Vaadin Flow application example, there is the Beverage Buddy App Starter for Flow avaiable also from [vaadin.com/start](https://vaadin.com/start) page.
+To start the server, open a terminal and run `mvn jetty:run` and open 
+[http://localhost:8080](http://localhost:8080) in browser.
+
+## How to use webassembly modules with Vaadin Flow ##
+
+There is nothing special that needs to be done in order to use a webassembly
+module in Vaadin Flow.  You can simply import the module in whichever client
+side class you wish.  You then use the module in your client side code as you
+normally would.
+
+In this application, we import the `webdsp.wasm` module from
+the `webdsp-element.html` file (Polymer component).  In order to do this we need to 
+import the `webdsp.js` file (standard wrapper for the wasm) and fetch
+the wasm.
+
+```
+<script src = './webdsp/webdsp.js' type = 'text/javascript'></script>
+```
+
+```
+// note: loadWASM function is a fetch wrapper defined in webdsp.js
+loadWASM().then(module => {
+    this._webdsp = module;
+});
+```
+
