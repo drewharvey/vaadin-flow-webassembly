@@ -11,18 +11,24 @@ import com.vaadin.flow.templatemodel.TemplateModel;
 public class WebDSP extends PolymerTemplate<WebDSP.WebDspModel> {
 
     public interface WebDspModel extends TemplateModel {
-        void setImageSrc(String imageSrc);
+        void setEnableWebcam(Boolean enableWebcam);
+        Boolean getEnableWebcam();
         void setFilter(String filter);
     }
 
     public enum Filter {
         NONE,
         INVERT,
-        DEWDROPS
+        DEWDROPS,
+        SOBEL
     }
 
-    public void setImageSrc(String imageSrc) {
-        getModel().setImageSrc(imageSrc);
+    public void setWebcamEnabled(Boolean isEnabled) {
+        getModel().setEnableWebcam(isEnabled);
+    }
+
+    public Boolean isWebcamEnabled() {
+        return getModel().getEnableWebcam();
     }
 
     public void setFilter(Filter filter) {

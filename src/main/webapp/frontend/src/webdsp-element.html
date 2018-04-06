@@ -8,8 +8,12 @@
             :host {
                 display: block;
             }
+            #video {
+                display: none;
+            }
         </style>
         <canvas id="canvas"></canvas>
+        <video id="video" loop="false" autoplay type="video/mp4"></video>
 
     </template>
 
@@ -22,14 +26,12 @@
 
             static get properties() {
                 return {
-                    imageSrc: {
-                        type: String
+                    enableWebcam: {
+                        type: Boolean,
+                        observer: '_enableWebcamChanged'
                     },
                     filter: {
                         type: String
-                    },
-                    imageData: {
-                        type: Array
                     },
                     _webdsp: {
                         type: Object
@@ -43,38 +45,46 @@
                 };
             }
 
-            static get observers() {
-                return [
-                    '_drawImage(imageSrc, filter)'
-                ]
-            }
-
             ready() {
                 super.ready();
-                this._canvasCtx = this.$.canvas.getContext('2d');
-                // load webassembly
+                // load webassembly module
                 loadWASM().then(module => {
                     this._webdsp = module;
                     this._filterMap = {
                         'invert': this._webdsp.invert,
-                        'dewdrops': this._webdsp.dewdrops
+                        'dewdrops': this._webdsp.dewdrops,
+                        'sobel': this._webdsp.sobelFilter
                     };
                 });
+                // stream video data to canvas
+                this.$.video.addEventListener("loadeddata", () => {
+                    this.$.canvas.setAttribute('height', this.$.video.videoHeight);
+                    this.$.canvas.setAttribute('width', this.$.video.videoWidth);
+                    this._webcamDrawLoop();
+                });
+                this._canvasCtx = this.$.canvas.getContext('2d');
             }
 
-            _drawImage(src, filter) {
-                var img = new Image();
-                img.onload = () => {
-                    this._drawToCanvas(img);
-                    this._applyFilter(filter);
-                };
-                img.src = src;
+            _webcamDrawLoop() {
+                this._animFrame = requestAnimationFrame(this._webcamDrawLoop.bind(this));
+                this._canvasCtx.drawImage(this.$.video, 0, 0);
+                if (this.filter) {
+                    this._applyFilter(this.filter);
+                }
             }
 
-            _drawToCanvas(img) {
-                this.$.canvas.width = img.width;
-                this.$.canvas.height = img.height;
-                this._canvasCtx.drawImage(img, 0, 0);
+            _enableWebcamChanged(enableWebcam) {
+                if (enableWebcam) {
+                    navigator.mediaDevices.getUserMedia({video: true})
+                        .then((stream) => {
+                        this.$.video.srcObject = stream;
+                    }).catch(function(err) {
+                        console.log(err.name);
+                    });
+                } else {
+                    this.$.video.srcObject = undefined;
+                    cancelAnimationFrame(this._animFrame);
+                }
             }
 
             _applyFilter(filter) {
@@ -86,7 +96,6 @@
                         this._canvasCtx.putImageData(imageData, 0, 0);
                     }
                 }
-                this.imageData = this._getImageData().data;
             }
 
             _getImageData() {
