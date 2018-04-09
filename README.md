@@ -10,12 +10,12 @@ Learn more about [Vaadin Flow Framework](https://vaadin.com/flow).
 This application uses the [WebDSP webassembly](https://github.com/shamadee/web-dsp) 
 module for filter effects.
 
-## Starting the server ##  
+## Starting the Server ##  
 
 To start the server, open a terminal and run `mvn jetty:run` and open 
 [http://localhost:8080](http://localhost:8080) in browser.
 
-## Loading a webassembly module on the client ##
+## Loading a Webassembly Module on the Client ##
 
 There is nothing special that needs to be done in order to use a webassembly
 module in Vaadin Flow.  You can simply import the module in whichever client
@@ -47,11 +47,13 @@ we loaded in the `this._webdsp` object to access its functions.
 this._webdsp.invert(params)
 ```
 
-## Controlling the webassembly module from the server side ##
+## Controlling the Webassembly Module from the Server ##
 
 Typically in a Vaadin Flow application, you will want to control the UI
 logic from the server side.  Now that we have our webassembly module loaded
 on the client side, how do we utilize this from the server? 
+
+### Basics of a Vaadin Flow Component ###
 
 We want to create a new Vaadin Flow component that will wrap the functionality 
 of the webdsp module.  This component will contain a server side class that
@@ -74,6 +76,8 @@ In this application, these classes are:
  * Server - WebDSP.java
  * Client - webdsp-element.html
  * Interface - WebDspModel (inside WebDSP.java)
+ 
+### Updating Client Properties from the Server ###
 
 The way we can trigger the client side to do something, is by updating the 
 client classes properties (Polymer component properties). These properties
@@ -82,6 +86,13 @@ changed.  This is where the Data model interface comes in handy. By specifying
 getters and setters for the available properties, we simply need to call these
 methods on the server side, and Vaadin Flow will update the properties on
 the client side.
+
+Basic flow of events:
+
+ 1. Application calls public setter in WebDSP.java (server side class).
+ 1. WebDSP.java calls setter in WebDspModel (data model interface).
+ 1. WebDspModel updates property webdsp-element.html (client side class).
+ 1. webdsp-element.html observes these property changes and updates UI.
 
 In this application the client class (`webdsp-element.html`) contains a `filter`
 property.  This tells the class which filter to use on the image. We also have
@@ -110,6 +121,8 @@ public void setFilter(Filter filter) {
     getModel().setFilter(filter.name());
 }
 ```
+
+### Using the Component ###
 
 Now we have a Vaadin Flow component, WebDSP, that loads a webassembly module on
 the client side and can be controlled by the server.  We can instantiate
@@ -147,3 +160,16 @@ Button dewdropBtn = new Button("Dewdrops");
 dewdropBtn.addClickListener(e -> dsp.setFilter(WebDSP.Filter.DEWDROPS));
 buttons.add(dewdropBtn);
 ```
+
+## Summary ##
+
+In order to utilize webassembly modules in a Vaadin Flow application, we just
+need to wrap the module in a component. This component consist of:
+
+ - Client class:
+   - Contains properties that can be updated and control the view of the UI.
+ - Server class:
+   - Contains logic and public methods for updating the client properties.
+ - Data model interface:
+   - Defines getters and setters for client properties so we can easily access
+  them from the server side.
